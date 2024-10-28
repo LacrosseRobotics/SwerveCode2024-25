@@ -1,10 +1,6 @@
 # Team 4054 - The Areonauts 
 ### Based on Yet Another Generic Swerve Library (YAGSL) Example project
 
-# Overview
-
-### Installation
-
 # Library Information
 ### Installation
 - [ ] Install NavX Library
