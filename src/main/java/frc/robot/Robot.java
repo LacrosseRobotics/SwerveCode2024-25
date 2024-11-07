@@ -218,17 +218,6 @@ public class Robot extends TimedRobot
       else{
         timer.restart();
       }
-      
-      Speedled = (int) ((Controls.swervespeedy / Controls.speedmax) / 255);
-
-
-      for (var i = 30; i < 60; i++) {
-        // Sets the specified LED to the RGB values for OFF
-        m_ledBuffer.setRGB(i, Speedled, 0, 0);
-     }
-     
-     m_led.setData(m_ledBuffer);
-    }
   }
 
   @Override
@@ -261,12 +250,11 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
    
-    /*double gyro = ahrs.getYaw() * (Math.PI/180);
+    /*double gyro = ahrs.getYaw();
     SmartDashboard.putNumber(   "Velocity_X",           ahrs.getVelocityX());
     SmartDashboard.putNumber(   "Velocity_Y",           ahrs.getVelocityY());
     SmartDashboard.putNumber(   "IMU_Yaw",              ahrs.getYaw());
-    SmartDashboard.putNumber(   "Gyro Math",              gyro);
-    SmartDashboard.putNumber(   "SwerveHeading",        Controls.swerveheading);*/
+    SmartDashboard.putNumber(   "Gyro Math",              gyro);*/
 
     //Xbox Controller Rumble
     Double RumbleY;
@@ -278,7 +266,24 @@ public class Robot extends TimedRobot
     SmartDashboard.putString(   "LedColor",        "Green");
 
     
-    
+    Speedled = (int) ((Controls.swervespeedy / Controls.speedmax) / 255);
+
+    if (Speedled > 0){
+      for (var i = 30; i < 60; i++) {
+        // Sets the specified LED to the RGB values for OFF
+        m_ledBuffer.setRGB(i, Speedled, 0, 0);
+     }
+     
+     m_led.setData(m_ledBuffer);
+    }
+    else {
+      for (var i = 30; i < 60; i++) {
+        // Sets the specified LED to the RGB values for Green
+        m_ledBuffer.setRGB(i, 0, 0, 0);
+     }
+     
+     m_led.setData(m_ledBuffer);
+    }
 
     //LED Blink
     //var i = 0; i < LedFlash; i++

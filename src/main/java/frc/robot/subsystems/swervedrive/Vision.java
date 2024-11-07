@@ -374,17 +374,17 @@ public class Vision
      * FRONTR Camera
      */
     FRONTR_CAM("frontr",
-               new Rotation3d(0, Units.degreesToRadians(30), 45),
+               new Rotation3d(180, Units.degreesToRadians(30), -45),
                new Translation3d(Units.inchesToMeters(14),
-                                 Units.inchesToMeters(14),
+                                 Units.inchesToMeters(-14),
                                  Units.inchesToMeters(6)),
                VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
     /**
      * FRONTL Camera
      */
     FRONTL_CAM("frontl",
-               new Rotation3d(0, Units.degreesToRadians(30), 315),
-               new Translation3d(Units.inchesToMeters(-14),
+               new Rotation3d(0, Units.degreesToRadians(30), -45),
+               new Translation3d(Units.inchesToMeters(14),
                                  Units.inchesToMeters(14),
                                  Units.inchesToMeters(6)),
                VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
@@ -392,16 +392,16 @@ public class Vision
      * BACKR Camera
      */
     BACKR_CAM("backr",
-               new Rotation3d(0, Units.degreesToRadians(30), 135),
-               new Translation3d(Units.inchesToMeters(14),
-                                 Units.inchesToMeters(-14),
+               new Rotation3d(0, Units.degreesToRadians(30), 90),
+               new Translation3d(Units.inchesToMeters(-14),
+                                 Units.inchesToMeters(14),
                                  Units.inchesToMeters(6)),
                VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
     /**
      * BACKL Camera
      */
    BACKL_CAM("backl",
-               new Rotation3d(0, Units.degreesToRadians(30), 225),
+               new Rotation3d(180, Units.degreesToRadians(30), 90),
                new Translation3d(Units.inchesToMeters(-14),
                                  Units.inchesToMeters(-14),
                                  Units.inchesToMeters(6)),

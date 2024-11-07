@@ -32,7 +32,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public final class Controls
 {
-  public static double speedmax = Units.feetToMeters(12.5); //12.5 MAX w/ L1 Ratio
+  public static double speedmax = Units.feetToMeters(12.5);
+  //public static double speedmax = 1; //12.5 MAX w/ L1 Ratio
   public static double swerveheading = 0;
   public static int swervespeedy;
   public static int swervespeedx;

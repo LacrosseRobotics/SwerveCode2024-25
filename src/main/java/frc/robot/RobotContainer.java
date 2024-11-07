@@ -82,7 +82,7 @@ public class RobotContainer
     Command driveFieldOrientedDirectAngle = drivebase.driveCommand(
         () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> driverXbox.getRightX(),
+        () -> driverXbox.getRightX() * -1,
         () -> driverXbox.getRightY());
 
     // Applies deadbands and inverts controls because joysticks

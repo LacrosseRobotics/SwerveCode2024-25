@@ -75,7 +75,7 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean visionDriveTest = false;
+  private final boolean visionDriveTest = true;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -652,10 +652,10 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
   /**
    * Add a fake vision reading for testing purposes.
    */
-  public void addFakeVisionReading()
+  /*public void addFakeVisionReading()
   {
     swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
-  }
+  }*/
 
   public class FieldRelativeSpeed {
     public double vx;
