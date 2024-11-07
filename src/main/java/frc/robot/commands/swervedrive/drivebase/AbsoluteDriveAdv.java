@@ -10,6 +10,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
+import frc.robot.Controls;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.util.List;
 import java.util.function.BooleanSupplier;
@@ -75,6 +76,7 @@ public class AbsoluteDriveAdv extends Command
   @Override
   public void execute()
   {
+    
     double headingX = 0;
     double headingY = 0;
 
@@ -99,7 +101,7 @@ public class AbsoluteDriveAdv extends Command
     {
       headingY = 1;
     }
-
+    
     // Prevent Movement After Auto
     if (resetHeading)
     {
@@ -117,14 +119,14 @@ public class AbsoluteDriveAdv extends Command
     }
 
     ChassisSpeeds desiredSpeeds = swerve.getTargetSpeeds(vX.getAsDouble(), vY.getAsDouble(), headingX, headingY);
-
+    
     // Limit velocity to prevent tippy
     Translation2d translation = SwerveController.getTranslation2d(desiredSpeeds);
     translation = SwerveMath.limitVelocity(translation, swerve.getFieldVelocity(), swerve.getPose(),
                                            Constants.LOOP_TIME, Constants.ROBOT_MASS, List.of(Constants.CHASSIS),
                                            swerve.getSwerveDriveConfiguration());
-    SmartDashboard.putNumber("LimitedTranslation", translation.getX());
-    SmartDashboard.putString("Translation", translation.toString());
+    //SmartDashboard.putNumber("LimitedTranslation", translation.getX());
+    //SmartDashboard.putString("Translation", translation.toString());
 
     // Make the robot move
     if (headingX == 0 && headingY == 0 && Math.abs(headingAdjust.getAsDouble()) > 0)
@@ -136,7 +138,6 @@ public class AbsoluteDriveAdv extends Command
       swerve.drive(translation, desiredSpeeds.omegaRadiansPerSecond, true);
     }
   }
-
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted)

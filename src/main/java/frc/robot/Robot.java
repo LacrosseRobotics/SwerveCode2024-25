@@ -4,16 +4,43 @@
 
 package frc.robot;
 
+import edu.wpi.first.hal.SimDouble;
+import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.ADIS16448_IMU.IMUAxis;
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+
 import java.io.File;
 import java.io.IOException;
+
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+
+import com.kauailabs.navx.frc.AHRS;
+
+import swervelib.SwerveDrive;
 import swervelib.parser.SwerveParser;
 
 /**
@@ -31,10 +58,43 @@ public class Robot extends TimedRobot
   private RobotContainer m_robotContainer;
 
   private Timer disabledTimer;
+  private Timer timer;
+
+  final CommandXboxController driverXbox = new CommandXboxController(0);
+
+  private final AddressableLED m_led;
+  private final AddressableLEDBuffer m_ledBuffer;
+
+  double LedFlash = 30;
+  int Speedled;
 
   public Robot()
   {
     instance = this;
+    stick = new Joystick(0);
+        try {
+            /* Communicate w/navX MXP via the MXP SPI Bus.                                     */
+            /* Alternatively:  I2C.Port.kMXP, SerialPort.Port.kMXP or SerialPort.Port.kUSB     */
+            /* See http://navx-mxp.kauailabs.com/guidance/selecting-an-interface/ for details. */
+            ahrs = new AHRS(SPI.Port.kMXP);
+        } catch (RuntimeException ex ) {
+            DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
+        }
+
+    // PWM port 9
+    // Must be a PWM header, not MXP or DIO
+    m_led = new AddressableLED(9);
+
+    // Reuse buffer
+    // Default to a length of 60, start empty output
+    // Length is expensive to set, so only set it once, then just update data
+    m_ledBuffer = new AddressableLEDBuffer(60);
+    m_led.setLength(m_ledBuffer.getLength());
+
+    // Set the data
+    m_led.setData(m_ledBuffer);
+    m_led.start();
+
   }
 
   public static Robot getInstance()
@@ -48,6 +108,7 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit()
   {
+    timer = new Timer();
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
@@ -55,6 +116,8 @@ public class Robot extends TimedRobot
     // Create a timer to disable motor brake a few seconds after disable.  This will let the robot stop
     // immediately when disabled, but then also let it be pushed more 
     disabledTimer = new Timer();
+
+  
   }
 
   /**
@@ -72,6 +135,7 @@ public class Robot extends TimedRobot
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+  
   }
 
   /**
@@ -83,6 +147,7 @@ public class Robot extends TimedRobot
     m_robotContainer.setMotorBrake(true);
     disabledTimer.reset();
     disabledTimer.start();
+    
   }
 
   @Override
@@ -90,9 +155,20 @@ public class Robot extends TimedRobot
   {
     if (disabledTimer.hasElapsed(Constants.DrivebaseConstants.WHEEL_LOCK_TIME))
     {
-      m_robotContainer.setMotorBrake(false);
+      m_robotContainer.setMotorBrake(true);
       disabledTimer.stop();
     }
+    
+    SmartDashboard.putString(   "LedColor",        "Yellow");
+
+    //LED ON
+    for (var i = 0; i < LedFlash; i++) {
+      // Sets the specified LED to the RGB values for Yellow
+      m_ledBuffer.setRGB(i, 255, 165, 0);
+   }
+   
+   m_led.setData(m_ledBuffer);
+
   }
 
   /**
@@ -109,6 +185,8 @@ public class Robot extends TimedRobot
     {
       m_autonomousCommand.schedule();
     }
+    timer.reset();
+    timer.start();
   }
 
   /**
@@ -117,6 +195,40 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic()
   {
+  
+    SmartDashboard.putString(   "LedColor",        "Purple");
+
+    //LED Blink
+      if (timer.get() < 0.25){
+        for (var i = 0; i < LedFlash; i++) {
+          // Sets the specified LED to the RGB values for OFF
+          m_ledBuffer.setRGB(i, 0, 0, 0);
+       }
+       
+       m_led.setData(m_ledBuffer);
+      }
+      else if (timer.get() < .5){
+        for (var i = 0; i <LedFlash; i++) {
+          // Sets the specified LED to the RGB values for Purple
+          m_ledBuffer.setRGB(i, 255, 0, 255);
+       }
+       
+       m_led.setData(m_ledBuffer);
+      }
+      else{
+        timer.restart();
+      }
+      
+      Speedled = (int) ((Controls.swervespeedy / Controls.speedmax) / 255);
+
+
+      for (var i = 30; i < 60; i++) {
+        // Sets the specified LED to the RGB values for OFF
+        m_ledBuffer.setRGB(i, Speedled, 0, 0);
+     }
+     
+     m_led.setData(m_ledBuffer);
+    }
   }
 
   @Override
@@ -132,14 +244,63 @@ public class Robot extends TimedRobot
     }
     m_robotContainer.setDriveMode();
     m_robotContainer.setMotorBrake(true);
+
+    timer.reset();
+    timer.start();
+
+    
   }
 
   /**
    * This function is called periodically during operator control.
    */
+  AHRS ahrs;
+  Joystick stick;
+  
   @Override
   public void teleopPeriodic()
-  {    
+  {
+   
+    /*double gyro = ahrs.getYaw() * (Math.PI/180);
+    SmartDashboard.putNumber(   "Velocity_X",           ahrs.getVelocityX());
+    SmartDashboard.putNumber(   "Velocity_Y",           ahrs.getVelocityY());
+    SmartDashboard.putNumber(   "IMU_Yaw",              ahrs.getYaw());
+    SmartDashboard.putNumber(   "Gyro Math",              gyro);
+    SmartDashboard.putNumber(   "SwerveHeading",        Controls.swerveheading);*/
+
+    //Xbox Controller Rumble
+    Double RumbleY;
+    Double RumbleX;
+    RumbleY = Math.abs(MathUtil.applyDeadband(driverXbox.getLeftY(), .1));
+    RumbleX = Math.abs(MathUtil.applyDeadband(driverXbox.getLeftX(), .1));
+    driverXbox.getHID().setRumble(RumbleType.kRightRumble, 0.25 * RumbleX + RumbleY);
+
+    SmartDashboard.putString(   "LedColor",        "Green");
+
+    
+    
+
+    //LED Blink
+    //var i = 0; i < LedFlash; i++
+    if (timer.get() < 0.5){
+      for (var i = 0; i < LedFlash; i++) {
+        // Sets the specified LED to the RGB values for OFF
+        m_ledBuffer.setRGB(i, 0, 0, 0);
+     }
+     
+     m_led.setData(m_ledBuffer);
+    }
+    else if (timer.get() < 1){
+      for (var i = 0; i < LedFlash; i++) {
+        // Sets the specified LED to the RGB values for Green
+        m_ledBuffer.setRGB(i, 0, 255, 0);
+     }
+     
+     m_led.setData(m_ledBuffer);
+    }
+    else{
+      timer.restart();
+    }
   }
   
 
@@ -179,5 +340,6 @@ public class Robot extends TimedRobot
   @Override
   public void simulationPeriodic()
   {
+    
   }
 }

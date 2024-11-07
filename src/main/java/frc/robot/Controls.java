@@ -8,6 +8,8 @@ package frc.robot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -31,4 +33,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 public final class Controls
 {
   public static double speedmax = Units.feetToMeters(12.5); //12.5 MAX w/ L1 Ratio
+  public static double swerveheading = 0;
+  public static int swervespeedy;
+  public static int swervespeedx;
 }

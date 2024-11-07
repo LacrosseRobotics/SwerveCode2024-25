@@ -5,6 +5,7 @@
 package frc.robot.subsystems.swervedrive;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.FollowPathWithEvents;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -23,6 +24,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -34,6 +36,7 @@ import frc.robot.Controls;
 import frc.robot.RobotContainer;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.function.DoubleSupplier;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -50,6 +53,10 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 
 public class SwerveSubsystem extends SubsystemBase
 {
@@ -147,9 +154,11 @@ public class SwerveSubsystem extends SubsystemBase
   {
   }
 
+  
   /**
    * Setup AutoBuilder for PathPlanner.
    */
+  // Subsystem initialization
   public void setupPathPlanner()
   {
     AutoBuilder.configureHolonomic(
@@ -226,7 +235,6 @@ public class SwerveSubsystem extends SubsystemBase
                );
         }).until(() -> getSpeakerYaw().minus(getHeading()).getDegrees() < tolerance);
   }
-
   /**
    * Aim the robot at the target returned by PhotonVision.
    *
@@ -254,11 +262,13 @@ public class SwerveSubsystem extends SubsystemBase
    * @param pathName PathPlanner path name.
    * @return {@link AutoBuilder#followPath(PathPlannerPath)} path command.
    */
-  public Command getAutonomousCommand(String pathName)
+  public Command getAutonomousCommand(String NewAuto)
   {
     // Create a path following command using AutoBuilder. This will also trigger event markers.
-    return new PathPlannerAuto(pathName);
+    return new PathPlannerAuto(NewAuto);
+    
   }
+
 
   /**
    * Use PathPlanner Path finding to go to a point on the field.
@@ -281,7 +291,7 @@ public class SwerveSubsystem extends SubsystemBase
         0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
                                      );
   }
-
+  
   /**
    * Command to drive the robot using translative values and heading as a setpoint.
    *
@@ -334,19 +344,6 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
    * @param rotation     Rotation as a value between [-1, 1] converted to radians.
    * @return Drive command.
    */
-  
-  /*public Command simDriveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier rotation)
-  {
-    // swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
-    return run(() -> {
-      // Make the robot move
-      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(translationX.getAsDouble(),
-                                                                      translationY.getAsDouble(),
-                                                                      rotation.getAsDouble() * -Math.PI,
-                                                                      swerveDrive.getOdometryHeading().getRadians(),
-                                                                      Controls.speedmax));
-    });
-  }*/
 
   /**
    * Command to characterize the robot drive motors using SysId
@@ -429,6 +426,10 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
     swerveDrive.driveFieldOriented(velocity);
   }
 
+  
+  
+  
+  
   /**
    * Drive according to the chassis robot oriented velocity.
    *
@@ -549,7 +550,6 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
   {
     return getPose().getRotation();
   }
-
   /**
    * Get the chassis speeds based on controller input of 2 joysticks. One for speeds in which direction. The other for
    * the angle of the robot.
@@ -570,7 +570,7 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
                                                         getHeading().getRadians(),
                                                         Controls.speedmax);
   }
-
+  
   /**
    * Get the chassis speeds based on controller input of 1 joystick and one angle. Control the robot at an offset of
    * 90deg.
@@ -656,4 +656,31 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
   {
     swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
   }
+
+  public class FieldRelativeSpeed {
+    public double vx;
+    public double vy;
+    public double omega;
+
+public FieldRelativeSpeed(double vx, double vy, double omega) {
+    this.vx = vx;
+    this.vy = vy;
+    this.omega = omega;
+    Controls.swervespeedx = (int) vx;
+    Controls.swervespeedy = (int) vy;
+}
+
+public FieldRelativeSpeed(ChassisSpeeds chassisSpeed, Rotation2d gyro) {
+    this(chassisSpeed.vxMetersPerSecond * gyro.getCos() - chassisSpeed.vyMetersPerSecond * gyro.getSin(),
+            chassisSpeed.vyMetersPerSecond * gyro.getCos() + chassisSpeed.vxMetersPerSecond * gyro.getSin(),
+            chassisSpeed.omegaRadiansPerSecond);
+}
+
+public FieldRelativeSpeed() {
+    this.vx = 0.0;
+    this.vy = 0.0;
+    this.omega = 0.0;
+}
+
+}
 }

@@ -158,10 +158,10 @@ public class Vision
   {
     Optional<EstimatedRobotPose> poseEst = filterPose(camera.poseEstimator.update());
     // Uncomment to enable outputting of vision targets in sim.
-    /*
+    
      poseEst.ifPresent(estimatedRobotPose -> field2d.getObject(camera + " est pose")
                                                     .setPose(estimatedRobotPose.estimatedPose.toPose2d()));
-    */
+    
     return poseEst;
   }
 
@@ -474,9 +474,10 @@ public class Vision
 
         cameraSim = new PhotonCameraSim(camera, cameraProp);
         cameraSim.enableDrawWireframe(true);
-        
       }
     }
+
+
 
     /**
      * Add camera to {@link VisionSystemSim} for simulated photon vision.
@@ -492,4 +493,5 @@ public class Vision
       }
     }
   }
+  
 }
