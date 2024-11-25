@@ -13,6 +13,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -27,6 +28,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
@@ -37,6 +39,7 @@ import frc.robot.RobotContainer;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.DoubleSupplier;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -49,6 +52,7 @@ import swervelib.parser.SwerveDriveConfiguration;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -60,6 +64,10 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class SwerveSubsystem extends SubsystemBase
 {
+  double maxmps;
+  double MaxAccelMpsSq;
+  double MaxAccel;
+    final CommandXboxController driverXbox = new CommandXboxController(0);
   /**
    * PhotonVision class to keep an accurate odometry.
    */
@@ -75,7 +83,7 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean visionDriveTest = true;
+  private final boolean visionDriveTest = false;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -88,7 +96,8 @@ public class SwerveSubsystem extends SubsystemBase
     // Angle conversion factor is 360 / (GEAR RATIO * ENCODER RESOLUTION)
     //  In this case the gear ratio is 12.8 motor revolutions per wheel rotation.
     //  The encoder resolution per motor revolution is 1 per motor revolution.
-    double angleConversionFactor = SwerveMath.calculateDegreesPerSteeringRotation(1);
+    double angleConversionFactor = SwerveMath.calculateDegreesPerSteeringRotation(12.8);
+    //drive  0.03921201641335663
     // Motor conversion factor is (PI * WHEEL DIAMETER IN METERS) / (GEAR RATIO * ENCODER RESOLUTION).
     //  In this case the wheel diameter is 4 inches, which must be converted to meters to get meters/second.
     //  The gear ratio is 6.75 motor revolutions per wheel rotation.
@@ -103,7 +112,7 @@ public class SwerveSubsystem extends SubsystemBase
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     try
     {
-      swerveDrive = new SwerveParser(directory).createSwerveDrive(Controls.speedmax);
+      swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.MAX_SPEED);
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
     } catch (Exception e)
@@ -112,6 +121,7 @@ public class SwerveSubsystem extends SubsystemBase
     }
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
+    
     if (visionDriveTest)
     {
       setupPhotonVision();
@@ -128,26 +138,53 @@ public class SwerveSubsystem extends SubsystemBase
    */
   public SwerveSubsystem(SwerveDriveConfiguration driveCfg, SwerveControllerConfiguration controllerCfg)
   {
-    swerveDrive = new SwerveDrive(driveCfg, controllerCfg, Controls.speedmax);
+    swerveDrive = new SwerveDrive(driveCfg, controllerCfg, maxmps);
   }
   /**
    * Setup the photon vision class.
    */
+  
   public void setupPhotonVision()
   {
     vision = new Vision(swerveDrive::getPose, swerveDrive.field);
   }
 
+  //Sets the max Speed of the bot with Slider in ShuffleBoard
+  ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+    GenericEntry maxSpeed =
+       tab.add("Max Speed Fps", Constants.MAX_SPEED)
+       .withWidget(BuiltInWidgets.kNumberSlider)
+       .withProperties(Map.of("min", 0, "max", Constants.MAX_SPEED)) // specify widget properties here
+       .getEntry();
+       
+       /*GenericEntry maxAccel =
+           tab.add("Max Accel FpsSq", Constants.MAX_ACCEL)
+          .withWidget(BuiltInWidgets.kNumberSlider)
+          .withProperties(Map.of("min", 6.25, "max", Constants.MAX_ACCEL)) // specify widget properties here
+          .getEntry();*/
+
   @Override
   public void periodic()
   {
+ //Sets the max speed of the bot with Slider in ShuffleBoard
+    double maxfps = maxSpeed.getDouble(Constants.MAX_SPEED);
+    maxmps = Units.feetToMeters(maxfps);
+    SmartDashboard.putNumber(   "SPEEDMAX SET FPS",        maxfps);
+    SmartDashboard.putNumber(   "SPEEDMAX SET MPS",        maxmps);
+    MaxAccelMpsSq = Units.feetToMeters(Constants.MAX_ACCELAuto);
     // When vision is enabled we must manually update odometry in SwerveDrive
     if (visionDriveTest)
     {
       swerveDrive.updateOdometry();
       vision.updatePoseEstimation(swerveDrive);
+      
     }
   }
+  double Accel = Constants.MAX_ACCELTeleop/12.5;
+  SlewRateLimiter Yfilter = new SlewRateLimiter(Accel);
+  SlewRateLimiter Xfilter = new SlewRateLimiter(Accel);
+  
+
 
   @Override
   public void simulationPeriodic()
@@ -161,6 +198,7 @@ public class SwerveSubsystem extends SubsystemBase
   // Subsystem initialization
   public void setupPathPlanner()
   {
+    
     AutoBuilder.configureHolonomic(
         this::getPose, // Robot pose supplier
         this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
@@ -171,7 +209,7 @@ public class SwerveSubsystem extends SubsystemBase
                                          // Translation PID constants
                                          AutonConstants.ANGLE_PID,
                                          // Rotation PID constants
-                                         4.5,
+                                         Constants.MAX_SPEED,
                                          // Max module speed, in m/s
                                          swerveDrive.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
                                          // Drive base radius in meters. Distance from robot center to furthest module.
@@ -235,6 +273,7 @@ public class SwerveSubsystem extends SubsystemBase
                );
         }).until(() -> getSpeakerYaw().minus(getHeading()).getDegrees() < tolerance);
   }
+
   /**
    * Aim the robot at the target returned by PhotonVision.
    *
@@ -276,11 +315,12 @@ public class SwerveSubsystem extends SubsystemBase
    * @param pose Target {@link Pose2d} to go to.
    * @return PathFinding command
    */
+
   public Command driveToPose(Pose2d pose)
   {
 // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-      Controls.speedmax, 4.0,
+      maxmps, MaxAccelMpsSq,
         swerveDrive.getMaximumAngularVelocity(), Units.degreesToRadians(720));
 
 // Since AutoBuilder is configured, we can use it to build pathfinding commands
@@ -301,6 +341,7 @@ public class SwerveSubsystem extends SubsystemBase
    * @param headingY     Heading Y to calculate angle of the joystick.
    * @return Drive command.
    */
+  
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
                               DoubleSupplier headingY)
   {
@@ -315,7 +356,7 @@ public class SwerveSubsystem extends SubsystemBase
                                                                       headingX.getAsDouble(),
                                                                       headingY.getAsDouble(),
                                                                       swerveDrive.getOdometryHeading().getRadians(),
-                                                                      Controls.speedmax));
+                                                                      maxmps));
     });
   }
 
@@ -323,19 +364,21 @@ public class SwerveSubsystem extends SubsystemBase
   DoubleSupplier headingY)
 {
 // swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
+
 return run(() -> {
 
 Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
                                                      translationY.getAsDouble()), 0.8);
 
 // Make the robot move
-driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
+driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(),scaledInputs.getY(),
                                           headingX.getAsDouble(),
                                           headingY.getAsDouble(),
                                           swerveDrive.getOdometryHeading().getRadians(),
-                                          Controls.speedmax));
+                                          maxmps));
 });
 }
+
   /**
    * Command to drive the robot using translative values and heading as a setpoint.
    *
@@ -386,8 +429,8 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
     return run(() -> {
       // Make the robot move
       swerveDrive.drive(SwerveMath.scaleTranslation(new Translation2d(
-                            translationX.getAsDouble() * Controls.speedmax,
-                            translationY.getAsDouble() * Controls.speedmax), 0.8),
+                            translationX.getAsDouble() * maxmps,
+                            translationY.getAsDouble() * maxmps), 0.8),
                         Math.pow(angularRotationX.getAsDouble(), 3) * swerveDrive.getMaximumAngularVelocity(),
                         true,
                         false);
@@ -539,7 +582,6 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
   {
     swerveDrive.setMotorIdleMode(brake);
   }
-
   /**
    * Gets the current yaw angle of the robot, as reported by the swerve pose estimator in the underlying drivebase.
    * Note, this is not the raw gyro reading, this may be corrected from calls to resetOdometry().
@@ -568,7 +610,7 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
                                                         headingX,
                                                         headingY,
                                                         getHeading().getRadians(),
-                                                        Controls.speedmax);
+                                                        maxmps);
   }
   
   /**
@@ -588,7 +630,7 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
                                                         scaledInputs.getY(),
                                                         angle.getRadians(),
                                                         getHeading().getRadians(),
-                                                        Controls.speedmax);
+                                                        maxmps);
   }
 
   /**
@@ -657,7 +699,7 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
     swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
   }*/
 
-  public class FieldRelativeSpeed {
+  /*public class FieldRelativeSpeed {
     public double vx;
     public double vy;
     public double omega;
@@ -682,5 +724,5 @@ public FieldRelativeSpeed() {
     this.omega = 0.0;
 }
 
-}
+}*/
 }

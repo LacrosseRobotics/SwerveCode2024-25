@@ -6,6 +6,9 @@ package frc.robot;
 
 
 import edu.wpi.first.wpilibj.XboxController;
+
+import java.util.Map;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,6 +22,7 @@ import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.MecanumDrive;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -30,11 +34,29 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class Controls
+public class Controls
 {
-  public static double speedmax = Units.feetToMeters(12.5);
-  //public static double speedmax = 1; //12.5 MAX w/ L1 Ratio
-  public static double swerveheading = 0;
-  public static int swervespeedy;
-  public static int swervespeedx;
+      
+      public static double speedmax = 1; //12.5 MAX w/ L1 Ratio
+      public static double swerveheading = 0;
+      public static int swervespeedy;
+      public static int swervespeedx;
+      public static double drivemodeteleop;
+      public static double drivemodeauto;
+      public static double drivemodedisabled;
+      public static double LeftX;
+      public static double LeftY;
+      public static double RightX;
+      public static double RightY;
+      public static double Forward;
+      public static double Strafe;
+
+        /*static ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+                            static GenericEntry maxSpeed =
+                                                    tab.add("Max Speed", 1)
+                                 .withWidget(BuiltInWidgets.kNumberSlider)
+                                 .withProperties(Map.of("min", 0, "max", 1)) // specify widget properties here
+                                 .getEntry();
+                            
+                                 public static double speedmax = maxSpeed.getDouble(1.0); //Units.feetToMeters(speedmaxfts);*/
 }

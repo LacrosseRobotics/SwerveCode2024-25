@@ -17,6 +17,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import frc.robot.Robot;
 import java.awt.Desktop;
+import java.awt.geom.QuadCurve2D;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -324,15 +325,18 @@ public class Vision
   {
     if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
     {
-//      try
-//      {
-//        Desktop.getDesktop().browse(new URI("http://localhost:1182/"));
-//        Desktop.getDesktop().browse(new URI("http://localhost:1184/"));
-//        Desktop.getDesktop().browse(new URI("http://localhost:1186/"));
-//      } catch (IOException | URISyntaxException e)
-//      {
-//        e.printStackTrace();
-//      }
+      try
+     {
+        Desktop.getDesktop().browse(new URI(""));
+         //Desktop.getDesktop().browse(new URI("http://localhost:1182/"));
+         //Desktop.getDesktop().browse(new URI("http://localhost:1184/"));
+         //Desktop.getDesktop().browse(new URI("http://localhost:1186/"));
+         //Desktop.getDesktop().browse(new URI("http://localhost:1188/"));
+         //Desktop.getDesktop().browse(new URI("http://localhost:1190/"));
+      } catch (IOException | URISyntaxException e)
+      {
+        e.printStackTrace();
+      }
     }
   }
 
@@ -369,43 +373,79 @@ public class Vision
    */
   enum Cameras
   {
-    
-    /**
-     * FRONTR Camera
-     */
+    Target_Cam("targetcam",
+    new Rotation3d(180, Units.degreesToRadians(-30), Units.degreesToRadians(0)),
+    new Translation3d(Units.inchesToMeters(0),
+                      Units.inchesToMeters(-14),
+                      Units.inchesToMeters(6)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+  FRONTR_CAM("frontr",
+    new Rotation3d(180, Units.degreesToRadians(-30), Units.degreesToRadians(45)),
+    new Translation3d(Units.inchesToMeters(-14),
+                      Units.inchesToMeters(-14),
+                      Units.inchesToMeters(6)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+  FRONTL_CAM("frontl",
+    new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-45)),
+    new Translation3d(Units.inchesToMeters(14),
+                      Units.inchesToMeters(-14),
+                      Units.inchesToMeters(6)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+  BACKR_CAM("backr",
+    new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(135)),
+    new Translation3d(Units.inchesToMeters(-14),
+                      Units.inchesToMeters(14),
+                      Units.inchesToMeters(6)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+  BACKL_CAM("backl",
+    new Rotation3d(180, Units.degreesToRadians(-30), Units.degreesToRadians(90)),
+    new Translation3d(Units.inchesToMeters(14),
+                      Units.inchesToMeters(14),
+                      Units.inchesToMeters(6)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
+
+//For Sim
+    /*enum Cameras
+  {
+    TestDrive("TestDrive",
+               new Rotation3d(0, Units.degreesToRadians(-30), 0),
+               new Translation3d(Units.inchesToMeters(0),
+                                 Units.inchesToMeters(13.5),
+                                 Units.inchesToMeters(6.5)),
+               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
     FRONTR_CAM("frontr",
-               new Rotation3d(180, Units.degreesToRadians(30), -45),
-               new Translation3d(Units.inchesToMeters(14),
-                                 Units.inchesToMeters(-14),
-                                 Units.inchesToMeters(6)),
-               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
-    /**
-     * FRONTL Camera
-     */
-    FRONTL_CAM("frontl",
-               new Rotation3d(0, Units.degreesToRadians(30), -45),
-               new Translation3d(Units.inchesToMeters(14),
-                                 Units.inchesToMeters(14),
-                                 Units.inchesToMeters(6)),
-               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
-    /**
-     * BACKR Camera
-     */
-    BACKR_CAM("backr",
-               new Rotation3d(0, Units.degreesToRadians(30), 90),
-               new Translation3d(Units.inchesToMeters(-14),
-                                 Units.inchesToMeters(14),
-                                 Units.inchesToMeters(6)),
-               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
-    /**
-     * BACKL Camera
-     */
-   BACKL_CAM("backl",
-               new Rotation3d(180, Units.degreesToRadians(30), 90),
-               new Translation3d(Units.inchesToMeters(-14),
-                                 Units.inchesToMeters(-14),
-                                 Units.inchesToMeters(6)),
-               VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));
+    new Rotation3d(0, Units.degreesToRadians(-30), -45),
+    new Translation3d(Units.inchesToMeters(13.5),
+                      Units.inchesToMeters(-13.5),
+                      Units.inchesToMeters(6.5)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+FRONTL_CAM("frontl",
+    new Rotation3d(0, Units.degreesToRadians(-30), 45),
+    new Translation3d(Units.inchesToMeters(13.5),
+                      Units.inchesToMeters(13.5),
+                      Units.inchesToMeters(6.5)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+BACKR_CAM("backr",
+    new Rotation3d(0, Units.degreesToRadians(-30), 180),
+    new Translation3d(Units.inchesToMeters(-13.5),
+                      Units.inchesToMeters(-13.5),
+                      Units.inchesToMeters(6.5)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
+
+BACKL_CAM("backl",
+    new Rotation3d(0, Units.degreesToRadians(-30), 90),
+    new Translation3d(Units.inchesToMeters(-13.5),
+                      Units.inchesToMeters(13.5),
+                      Units.inchesToMeters(6.5)),
+    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1));*/
+  
 
     /**
      * Latency alert to use when high latency is detected.
@@ -462,8 +502,8 @@ public class Vision
       if (Robot.isSimulation())
       {
         SimCameraProperties cameraProp = new SimCameraProperties();
-        // A 640 x 480 camera with a 100 degree diagonal FOV.
-        cameraProp.setCalibration(960, 720, Rotation2d.fromDegrees(100));
+        // A 1200 x 800 camera with a 100 degree diagonal FOV.
+        cameraProp.setCalibration(1200, 800, Rotation2d.fromDegrees(70));
         // Approximate detection noise with average and standard deviation error in pixels.
         cameraProp.setCalibError(0.25, 0.08);
         // Set the camera image capture framerate (Note: this is limited by robot loop rate).
@@ -474,6 +514,7 @@ public class Vision
 
         cameraSim = new PhotonCameraSim(camera, cameraProp);
         cameraSim.enableDrawWireframe(true);
+        
       }
     }
 

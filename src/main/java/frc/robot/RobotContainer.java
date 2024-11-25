@@ -5,9 +5,12 @@
 package frc.robot;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -23,11 +26,13 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
+import java.util.Map;
 import java.util.Optional;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.NamedCommands;
 
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -39,7 +44,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public class RobotContainer
 {
-  
+
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final CommandXboxController driverXbox = new CommandXboxController(0);
@@ -50,8 +55,25 @@ public class RobotContainer
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
+  public static double Accel;
+  public static double MaxAccel;
+  
+
+
+  
   public RobotContainer()
   {
+          //Sets the max Accel of the bot with Slider in ShuffleBoard
+          /*ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+          GenericEntry maxAccel =
+              tab.add("Max Accel FpsSq", Constants.MAX_ACCEL)
+             .withWidget(BuiltInWidgets.kNumberSlider)
+             .withProperties(Map.of("min", 6.25, "max", Constants.MAX_ACCEL)) // specify widget properties here
+             .getEntry();
+    MaxAccel = maxAccel.getDouble(Constants.MAX_ACCEL);
+    Accel = MaxAccel/Constants.MAX_SPEED;
+    SlewRateLimiter Yfilter = new SlewRateLimiter(Accel);
+    SlewRateLimiter Xfilter = new SlewRateLimiter(Accel);*/
     // Configure the trigger bindings
     configureBindings();
 
@@ -73,12 +95,12 @@ public class RobotContainer
                                                                    driverXbox.getHID()::getAButtonPressed,
                                                                    driverXbox.getHID()::getXButtonPressed,
                                                                    driverXbox.getHID()::getBButtonPressed);
-
     // Applies deadbands and inverts controls because joysticks
     // are back-right positive while robot
     // controls are front-left positive
     // left stick controls translation
     // right stick controls the desired angle NOT angular rotation
+    
     Command driveFieldOrientedDirectAngle = drivebase.driveCommand(
         () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
@@ -95,6 +117,8 @@ public class RobotContainer
         () -> MathUtil.applyDeadband(driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
         () -> driverXbox.getRightX() * 0.5);
 
+        
+        
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
         () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
         () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
@@ -102,7 +126,7 @@ public class RobotContainer
         () -> driverXbox.getRightX() * -1,
         () -> driverXbox.getRightY());
 
-        
+
 
     drivebase.setDefaultCommand(
         !RobotBase.isSimulation() ? driveFieldOrientedDirectAngle : driveFieldOrientedDirectAngleSim);
