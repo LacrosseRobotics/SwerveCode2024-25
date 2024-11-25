@@ -171,6 +171,8 @@ public class SwerveSubsystem extends SubsystemBase
     maxmps = Units.feetToMeters(maxfps);
     SmartDashboard.putNumber(   "SPEEDMAX SET FPS",        maxfps);
     SmartDashboard.putNumber(   "SPEEDMAX SET MPS",        maxmps);
+    SmartDashboard.putNumber(   "SPEEDACCEL Auto",        Constants.MAX_ACCELAuto);
+    SmartDashboard.putNumber(   "SPEEDACCEL Teleop",        Constants.MAX_ACCELTeleop);
     MaxAccelMpsSq = Units.feetToMeters(Constants.MAX_ACCELAuto);
     // When vision is enabled we must manually update odometry in SwerveDrive
     if (visionDriveTest)
@@ -352,7 +354,7 @@ public class SwerveSubsystem extends SubsystemBase
                                                                                  translationY.getAsDouble()), 0.8);
 
       // Make the robot move
-      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
+      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(Xfilter.calculate(scaledInputs.getX()), Yfilter.calculate(scaledInputs.getY()),
                                                                       headingX.getAsDouble(),
                                                                       headingY.getAsDouble(),
                                                                       swerveDrive.getOdometryHeading().getRadians(),
@@ -371,7 +373,7 @@ Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(trans
                                                      translationY.getAsDouble()), 0.8);
 
 // Make the robot move
-driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(),scaledInputs.getY(),
+driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(Xfilter.calculate(scaledInputs.getX()),Yfilter.calculate(scaledInputs.getY()),
                                           headingX.getAsDouble(),
                                           headingY.getAsDouble(),
                                           swerveDrive.getOdometryHeading().getRadians(),
