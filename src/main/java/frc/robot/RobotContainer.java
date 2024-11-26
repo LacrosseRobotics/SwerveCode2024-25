@@ -56,89 +56,83 @@ public class RobotContainer
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public static double Accel;
-  public static double MaxAccel;
   
+//Sets the max Accel of the bot with Slider in ShuffleBoard
 
 
-  
   public RobotContainer()
   {
-          //Sets the max Accel of the bot with Slider in ShuffleBoard
-          /*ShuffleboardTab tab = Shuffleboard.getTab("Drive");
-          GenericEntry maxAccel =
-              tab.add("Max Accel FpsSq", Constants.MAX_ACCEL)
-             .withWidget(BuiltInWidgets.kNumberSlider)
-             .withProperties(Map.of("min", 6.25, "max", Constants.MAX_ACCEL)) // specify widget properties here
-             .getEntry();
-    MaxAccel = maxAccel.getDouble(Constants.MAX_ACCEL);
-    Accel = MaxAccel/Constants.MAX_SPEED;
-    SlewRateLimiter Yfilter = new SlewRateLimiter(Accel);
-    SlewRateLimiter Xfilter = new SlewRateLimiter(Accel);*/
     // Configure the trigger bindings
     configureBindings();
-
-    // Applies deadbands and inverts controls because joysticks
-    // are back-right positive while robot
-    // controls are front-left positive
-    // left stick controls translation
-    // right stick controls the rotational velocity 
-    // buttons are quick rotation positions to different ways to face
-    // WARNING: default buttons are on the same buttons as the ones defined in configureBindings
-    AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
-                                                                   () -> -MathUtil.applyDeadband(driverXbox.getLeftY(),
-                                                                                                 OperatorConstants.LEFT_Y_DEADBAND),
-                                                                   () -> -MathUtil.applyDeadband(driverXbox.getLeftX(),
-                                                                                                 OperatorConstants.LEFT_X_DEADBAND),
-                                                                   () -> -MathUtil.applyDeadband(driverXbox.getRightX(),
-                                                                                                 OperatorConstants.RIGHT_X_DEADBAND),
-                                                                   driverXbox.getHID()::getYButtonPressed,
-                                                                   driverXbox.getHID()::getAButtonPressed,
-                                                                   driverXbox.getHID()::getXButtonPressed,
-                                                                   driverXbox.getHID()::getBButtonPressed);
-    // Applies deadbands and inverts controls because joysticks
-    // are back-right positive while robot
-    // controls are front-left positive
-    // left stick controls translation
-    // right stick controls the desired angle NOT angular rotation
-    
-    Command driveFieldOrientedDirectAngle = drivebase.driveCommand(
-        () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> driverXbox.getRightX() * -1,
-        () -> driverXbox.getRightY());
-
-    // Applies deadbands and inverts controls because joysticks
-    // are back-right positive while robot
-    // controls are front-left positive
-    // left stick controls translation
-    // right stick controls the angular velocity of the robot
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
-        () -> MathUtil.applyDeadband(driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        () -> driverXbox.getRightX() * 0.5);
-
-        
-        
-    Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
-        () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
-        () -> MathUtil.applyDeadband(-1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
-        //() -> driverXbox.getRawAxis(4) * 0.5);
-        () -> driverXbox.getRightX() * -1,
-        () -> driverXbox.getRightY());
-
-
-
-    drivebase.setDefaultCommand(
-        !RobotBase.isSimulation() ? driveFieldOrientedDirectAngle : driveFieldOrientedDirectAngleSim);
-  }
-
-  /**
+    driveBinding();
+        // Applies deadbands and inverts controls because joysticks
+        // are back-right positive while robot
+        // controls are front-left positive
+        // left stick controls translation
+        // right stick controls the rotational velocity 
+        // buttons are quick rotation positions to different ways to face
+        // WARNING: default buttons are on the same buttons as the ones defined in configureBindings
+        AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
+                                                                       () -> -MathUtil.applyDeadband(driverXbox.getLeftY(),
+                                                                                                     OperatorConstants.LEFT_Y_DEADBAND),
+                                                                       () -> -MathUtil.applyDeadband(driverXbox.getLeftX(),
+                                                                                                     OperatorConstants.LEFT_X_DEADBAND),
+                                                                       () -> -MathUtil.applyDeadband(driverXbox.getRightX(),
+                                                                                                     OperatorConstants.RIGHT_X_DEADBAND),
+                                                                       driverXbox.getHID()::getYButtonPressed,
+                                                                       driverXbox.getHID()::getAButtonPressed,
+                                                                       driverXbox.getHID()::getXButtonPressed,
+                                                                       driverXbox.getHID()::getBButtonPressed);
+      }
+      /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
    * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
    * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
+  public void driveBinding() {
+    Accel = maxAccel.getDouble(Constants.MAX_ACCELTeleop);
+    double Accelmps = Accel/6.25;
+    SlewRateLimiter LYfilter = new SlewRateLimiter(Accelmps);
+    SlewRateLimiter LXfilter = new SlewRateLimiter(Accelmps);
+  
+          // Applies deadbands and inverts controls because joysticks
+          // are back-right positive while robot
+          // controls are front-left positive
+          // left stick controls translation
+          // right stick controls the desired angle NOT angular rotation
+        
+    Command driveFieldOrientedDirectAngle = drivebase.driveCommand(
+              () -> MathUtil.applyDeadband(-1 * LYfilter.calculate(driverXbox.getLeftY()), OperatorConstants.LEFT_Y_DEADBAND),
+              () -> MathUtil.applyDeadband(-1 * LXfilter.calculate(driverXbox.getLeftX()), OperatorConstants.LEFT_X_DEADBAND),
+              () -> driverXbox.getRightX() * -1,
+              () -> driverXbox.getRightY());
+  
+          // Applies deadbands and inverts controls because joysticks
+          // are back-right positive while robot
+          // controls are front-left positive
+          // left stick controls translation
+          // right stick controls the angular velocity of the robot
+  
+    Command driveFieldOrientedAnglularVelocity = drivebase.driveCommand(
+              () -> MathUtil.applyDeadband(driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+              () -> MathUtil.applyDeadband(driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+              () -> driverXbox.getRightX() * 0.5);
+  
+    Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
+      () -> MathUtil.applyDeadband(-1 * LYfilter.calculate(driverXbox.getLeftY()), OperatorConstants.LEFT_Y_DEADBAND),
+      () -> MathUtil.applyDeadband(-1 * LXfilter.calculate(driverXbox.getLeftX()), OperatorConstants.LEFT_X_DEADBAND),
+      //() -> driverXbox.getRawAxis(4) * 0.5);
+      () -> driverXbox.getRightX() * -1,
+      () -> driverXbox.getRightY());
+  
+  
+  
+  drivebase.setDefaultCommand(
+      !RobotBase.isSimulation() ? driveFieldOrientedDirectAngle : driveFieldOrientedDirectAngleSim);
+  }
+
   private void configureBindings()
   {
     // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
@@ -146,11 +140,11 @@ public class RobotContainer
     //driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
     driverXbox.x().whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)))
+                                   new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
                               ));
     driverXbox.b().whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
+                                   new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)))
                               ));
     driverXbox.y().whileTrue(drivebase.aimAtSpeaker(0.25));
     // driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
@@ -176,4 +170,12 @@ public class RobotContainer
   {
     drivebase.setMotorBrake(brake);
   }
+  ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+GenericEntry maxAccel =
+    tab.add("Max Accel FpsSq", Constants.MAX_ACCELTeleop)
+   .withWidget(BuiltInWidgets.kNumberSlider)
+   .withProperties(Map.of("min", 0, "max", Constants.MAX_ACCELTeleop)) // specify widget properties here
+   .getEntry();
+  
+
 }

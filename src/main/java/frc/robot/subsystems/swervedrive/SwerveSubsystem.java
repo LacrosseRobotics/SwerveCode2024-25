@@ -83,7 +83,7 @@ public class SwerveSubsystem extends SubsystemBase
   /**
    * Enable vision odometry updates while driving.
    */
-  private final boolean visionDriveTest = false;
+  private final boolean visionDriveTest = true;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -112,7 +112,7 @@ public class SwerveSubsystem extends SubsystemBase
     SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
     try
     {
-      swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.MAX_SPEED);
+      swerveDrive = new SwerveParser(directory).createSwerveDrive(Units.feetToMeters(Constants.MAX_SPEED));
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
     } catch (Exception e)
@@ -173,7 +173,7 @@ public class SwerveSubsystem extends SubsystemBase
     SmartDashboard.putNumber(   "SPEEDMAX SET MPS",        maxmps);
     SmartDashboard.putNumber(   "SPEEDACCEL Auto",        Constants.MAX_ACCELAuto);
     SmartDashboard.putNumber(   "SPEEDACCEL Teleop",        Constants.MAX_ACCELTeleop);
-    MaxAccelMpsSq = Units.feetToMeters(Constants.MAX_ACCELAuto);
+    MaxAccelMpsSq = Units.feetToMeters(RobotContainer.Accel);
     // When vision is enabled we must manually update odometry in SwerveDrive
     if (visionDriveTest)
     {
@@ -182,9 +182,6 @@ public class SwerveSubsystem extends SubsystemBase
       
     }
   }
-  double Accel = Constants.MAX_ACCELTeleop/12.5;
-  SlewRateLimiter Yfilter = new SlewRateLimiter(Accel);
-  SlewRateLimiter Xfilter = new SlewRateLimiter(Accel);
   
 
 
@@ -211,7 +208,7 @@ public class SwerveSubsystem extends SubsystemBase
                                          // Translation PID constants
                                          AutonConstants.ANGLE_PID,
                                          // Rotation PID constants
-                                         Constants.MAX_SPEED,
+                                         Units.feetToMeters(Constants.MAX_SPEED),
                                          // Max module speed, in m/s
                                          swerveDrive.swerveDriveConfiguration.getDriveBaseRadiusMeters(),
                                          // Drive base radius in meters. Distance from robot center to furthest module.
@@ -347,14 +344,14 @@ public class SwerveSubsystem extends SubsystemBase
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
                               DoubleSupplier headingY)
   {
-    // swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
+  swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
     return run(() -> {
 
       Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
                                                                                  translationY.getAsDouble()), 0.8);
 
       // Make the robot move
-      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(Xfilter.calculate(scaledInputs.getX()), Yfilter.calculate(scaledInputs.getY()),
+      driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(), scaledInputs.getY(),
                                                                       headingX.getAsDouble(),
                                                                       headingY.getAsDouble(),
                                                                       swerveDrive.getOdometryHeading().getRadians(),
@@ -365,7 +362,7 @@ public class SwerveSubsystem extends SubsystemBase
   public Command simDriveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
   DoubleSupplier headingY)
 {
-// swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
+swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
 
 return run(() -> {
 
@@ -373,7 +370,7 @@ Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(trans
                                                      translationY.getAsDouble()), 0.8);
 
 // Make the robot move
-driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(Xfilter.calculate(scaledInputs.getX()),Yfilter.calculate(scaledInputs.getY()),
+driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.getX(),scaledInputs.getY(),
                                           headingX.getAsDouble(),
                                           headingY.getAsDouble(),
                                           swerveDrive.getOdometryHeading().getRadians(),
@@ -696,10 +693,10 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(Xfilter.calculat
   /**
    * Add a fake vision reading for testing purposes.
    */
-  /*public void addFakeVisionReading()
+  public void addFakeVisionReading()
   {
-    swerveDrive.addVisionMeasurement(new Pose2d(3, 3, Rotation2d.fromDegrees(65)), Timer.getFPGATimestamp());
-  }*/
+    swerveDrive.addVisionMeasurement(new Pose2d(0, 0, Rotation2d.fromDegrees(0)), Timer.getFPGATimestamp());
+  }
 
   /*public class FieldRelativeSpeed {
     public double vx;
