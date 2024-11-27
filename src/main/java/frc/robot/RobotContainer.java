@@ -91,6 +91,14 @@ public class RobotContainer
    * {@link CommandXboxController Xbox}/{@link edu.wpi.first.wpilibj2.command.button.CommandPS4Controller PS4}
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
+
+   ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+   GenericEntry maxAccel =
+       tab.add("Max Accel FpsSq", Constants.MAX_ACCELTeleop)
+      .withWidget(BuiltInWidgets.kNumberSlider)
+      .withProperties(Map.of("min", 0, "max", Constants.MAX_ACCELTeleop)) // specify widget properties here
+      .getEntry();
+      
   public void driveBinding() {
     Accel = maxAccel.getDouble(Constants.MAX_ACCELTeleop);
     double Accelmps = Accel/6.25;
@@ -147,7 +155,7 @@ public class RobotContainer
                                    new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)))
                               ));
     driverXbox.y().whileTrue(drivebase.aimAtSpeaker(0.25));
-    // driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
+    //driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
   }
 
   /**
@@ -170,12 +178,7 @@ public class RobotContainer
   {
     drivebase.setMotorBrake(brake);
   }
-  ShuffleboardTab tab = Shuffleboard.getTab("Drive");
-GenericEntry maxAccel =
-    tab.add("Max Accel FpsSq", Constants.MAX_ACCELTeleop)
-   .withWidget(BuiltInWidgets.kNumberSlider)
-   .withProperties(Map.of("min", 0, "max", Constants.MAX_ACCELTeleop)) // specify widget properties here
-   .getEntry();
+
   
 
 }
