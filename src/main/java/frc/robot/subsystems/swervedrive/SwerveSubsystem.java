@@ -40,6 +40,7 @@ import frc.robot.RobotContainer;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.DoubleSupplier;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -67,6 +68,7 @@ public class SwerveSubsystem extends SubsystemBase
   double maxmps;
   double MaxAccelMpsSq;
   double MaxAccel;
+  boolean Alliancecolor;
     final CommandXboxController driverXbox = new CommandXboxController(0);
   /**
    * PhotonVision class to keep an accurate odometry.
@@ -121,7 +123,7 @@ public class SwerveSubsystem extends SubsystemBase
     }
     swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
-    
+    //IF ISSUE DISABLE!!!!!
     if (visionDriveTest)
     {
       setupPhotonVision();
@@ -181,7 +183,28 @@ public class SwerveSubsystem extends SubsystemBase
       vision.updatePoseEstimation(swerveDrive);
       
     }
-  }
+
+    Optional<Alliance> ally = DriverStation.getAlliance();
+if (ally.isPresent()) {
+    if (ally.get() == Alliance.Red) {
+        //team red
+        Controls.Direction = -1;
+        SmartDashboard.putString(   "Team",        "Red");
+    }
+    if (ally.get() == Alliance.Blue) {
+        //team blue
+        Controls.Direction = 1;
+        SmartDashboard.putString(   "Team",        "Blue");
+    }
+}
+else {
+    //nothing
+}
+
+    }
+  
+
+  
   
 
 
@@ -344,7 +367,7 @@ public class SwerveSubsystem extends SubsystemBase
   public Command driveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
                               DoubleSupplier headingY)
   {
-  //swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
+  swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
     return run(() -> {
 
       Translation2d scaledInputs = SwerveMath.scaleTranslation(new Translation2d(translationX.getAsDouble(),
@@ -362,7 +385,7 @@ public class SwerveSubsystem extends SubsystemBase
   public Command simDriveCommand(DoubleSupplier translationX, DoubleSupplier translationY, DoubleSupplier headingX,
   DoubleSupplier headingY)
 {
-//swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
+swerveDrive.setHeadingCorrection(true); // Normally you would want heading correction for this kind of control.
 
 return run(() -> {
 
@@ -693,10 +716,10 @@ driveFieldOriented(swerveDrive.swerveController.getTargetSpeeds(scaledInputs.get
   /**
    * Add a fake vision reading for testing purposes.
    */
-  public void addFakeVisionReading()
+  /*public void addFakeVisionReading()
   {
     swerveDrive.addVisionMeasurement(new Pose2d(0, 0, Rotation2d.fromDegrees(0)), Timer.getFPGATimestamp());
-  }
+  }*/
 
   /*public class FieldRelativeSpeed {
     public double vx;

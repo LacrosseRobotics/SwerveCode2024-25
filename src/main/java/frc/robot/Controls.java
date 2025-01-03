@@ -50,6 +50,7 @@ public class Controls
       public static double RightY;
       public static double Forward;
       public static double Strafe;
+      public static double Direction;
 
         /*static ShuffleboardTab tab = Shuffleboard.getTab("Drive");
                             static GenericEntry maxSpeed =

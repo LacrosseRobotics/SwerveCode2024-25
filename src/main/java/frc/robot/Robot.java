@@ -7,6 +7,8 @@ package frc.robot;
 import edu.wpi.first.hal.SimDouble;
 import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
@@ -44,6 +46,9 @@ import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import swervelib.SwerveDrive;
 import swervelib.parser.SwerveParser;
@@ -65,7 +70,16 @@ public class Robot extends TimedRobot
   private Timer disabledTimer;
   private Timer timer;
 
-  final CommandXboxController driverXbox = new CommandXboxController(0);
+  private final XboxController m_controller = new XboxController(0);
+
+  CANSparkMax Shooter1 = new CANSparkMax(1, MotorType.kBrushless);
+  CANSparkMax Shooter2 = new CANSparkMax(2, MotorType.kBrushless);
+  private SlewRateLimiter shooter1 = new SlewRateLimiter(1.0 / 1);
+  private SlewRateLimiter shooter2 = new SlewRateLimiter(1.0 / 1);
+
+  CANSparkMax triggerrotate = new CANSparkMax(3, MotorType.kBrushless);
+  private RelativeEncoder triggerencoder;
+  PIDController trigger = new PIDController(0.1, 0, 0);
 
   AHRS ahrs;
   Joystick stick;
@@ -104,7 +118,7 @@ public class Robot extends TimedRobot
 
   double LedFlash = 36;
   int Speedled;
-
+  double shooter;
   
     public Robot()
     {
@@ -155,7 +169,7 @@ public class Robot extends TimedRobot
       // immediately when disabled, but then also let it be pushed more 
       disabledTimer = new Timer();
   
-    
+      triggerencoder = triggerrotate.getEncoder();
     }
   
     /**
@@ -167,7 +181,12 @@ public class Robot extends TimedRobot
      */
     
 
-       
+     ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+     GenericEntry Shooter =
+        tab.add("Shooter Speed", 0)
+        .withWidget(BuiltInWidgets.kNumberSlider)
+        .withProperties(Map.of("min", 0, "max", 1)) // specify widget properties here
+        .getEntry();
 
     @Override
     public void robotPeriodic()
@@ -177,6 +196,8 @@ public class Robot extends TimedRobot
       // and running subsystem periodic() methods.  This must be called from the robot's periodic
       // block in order for anything in the Command-based framework to work.
       CommandScheduler.getInstance().run();
+
+       shooter = Shooter.getDouble(0);
     }
   
     /**
@@ -292,10 +313,27 @@ public class Robot extends TimedRobot
     /**
      * This function is called periodically during operator control.
      */
+    double actionspeed = .5;
     @Override
     public void teleopPeriodic()
     {
       
+      if (m_controller.getLeftBumper()) {
+        Shooter1.set(-1*shooter);
+        Shooter2.set(shooter);
+      }else {
+        Shooter1.set(0);
+        Shooter2.set(0);
+      }
+
+      if (m_controller.getRightTriggerAxis() > .1) {
+        triggerrotate.set(actionspeed * trigger.calculate(triggerencoder.getPosition(), -9));
+      }else {
+        triggerrotate.set(actionspeed * trigger.calculate(triggerencoder.getPosition(), 0));
+      }
+      SmartDashboard.putNumber("Trigger Encoder Position", triggerencoder.getPosition());
+        SmartDashboard.putNumber(   "Shooter Speed",        shooter);
+
     /*double gyro = ahrs.getYaw();
     SmartDashboard.putNumber(   "Velocity_X",           ahrs.getVelocityX());
     SmartDashboard.putNumber(   "Velocity_Y",           ahrs.getVelocityY());
@@ -352,6 +390,7 @@ public class Robot extends TimedRobot
     else{
       timer.restart();
     }
+
   }
   
 

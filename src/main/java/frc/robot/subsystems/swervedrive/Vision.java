@@ -323,11 +323,11 @@ public class Vision
    */
   private void openSimCameraViews()
   {
-    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
+    /*if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))
     {
       try
      {
-        Desktop.getDesktop().browse(new URI(""));
+        Desktop.getDesktop().app;
          //Desktop.getDesktop().browse(new URI("http://localhost:1182/"));
          //Desktop.getDesktop().browse(new URI("http://localhost:1184/"));
          //Desktop.getDesktop().browse(new URI("http://localhost:1186/"));
@@ -337,7 +337,7 @@ public class Vision
       {
         e.printStackTrace();
       }
-    }
+    }*/
   }
 
   /**
@@ -373,36 +373,30 @@ public class Vision
    */
   enum Cameras
   {
-    Target_Cam("targetcam",
-    new Rotation3d(180, Units.degreesToRadians(-30), Units.degreesToRadians(0)),
-    new Translation3d(Units.inchesToMeters(0),
-                      Units.inchesToMeters(-14),
-                      Units.inchesToMeters(6)),
-    VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
   FRONTR_CAM("frontr",
-    new Rotation3d(180, Units.degreesToRadians(-30), Units.degreesToRadians(45)),
+    new Rotation3d(0, 0.524,5.498),
     new Translation3d(Units.inchesToMeters(-14),
                       Units.inchesToMeters(-14),
                       Units.inchesToMeters(6)),
     VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
   FRONTL_CAM("frontl",
-    new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(-45)),
+    new Rotation3d(0, 0.524, 0.785),
     new Translation3d(Units.inchesToMeters(14),
                       Units.inchesToMeters(-14),
                       Units.inchesToMeters(6)),
     VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
   BACKR_CAM("backr",
-    new Rotation3d(0, Units.degreesToRadians(-30), Units.degreesToRadians(135)),
+    new Rotation3d(0, 0.524,3.927),
     new Translation3d(Units.inchesToMeters(-14),
                       Units.inchesToMeters(14),
                       Units.inchesToMeters(6)),
     VecBuilder.fill(4, 4, 8), VecBuilder.fill(0.5, 0.5, 1)),
 
   BACKL_CAM("backl",
-    new Rotation3d(180, Units.degreesToRadians(-30), Units.degreesToRadians(90)),
+    new Rotation3d(0, 0.524,2.356),
     new Translation3d(Units.inchesToMeters(14),
                       Units.inchesToMeters(14),
                       Units.inchesToMeters(6)),

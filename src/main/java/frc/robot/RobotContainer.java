@@ -60,6 +60,7 @@ public class RobotContainer
 //Sets the max Accel of the bot with Slider in ShuffleBoard
 
 
+
   public RobotContainer()
   {
     // Configure the trigger bindings
@@ -92,18 +93,18 @@ public class RobotContainer
    * controllers or {@link edu.wpi.first.wpilibj2.command.button.CommandJoystick Flight joysticks}.
    */
 
-   ShuffleboardTab tab = Shuffleboard.getTab("Drive");
+   /*ShuffleboardTab tab = Shuffleboard.getTab("Drive");
    GenericEntry maxAccel =
        tab.add("Max Accel FpsSq", Constants.MAX_ACCELTeleop)
       .withWidget(BuiltInWidgets.kNumberSlider)
       .withProperties(Map.of("min", 0, "max", Constants.MAX_ACCELTeleop)) // specify widget properties here
-      .getEntry();
-      
+      .getEntry()*/    
+
   public void driveBinding() {
-    Accel = maxAccel.getDouble(Constants.MAX_ACCELTeleop);
+   /* Accel = maxAccel.getDouble(Constants.MAX_ACCELTeleop);
     double Accelmps = Accel/6.25;
     SlewRateLimiter LYfilter = new SlewRateLimiter(Accelmps);
-    SlewRateLimiter LXfilter = new SlewRateLimiter(Accelmps);
+    SlewRateLimiter LXfilter = new SlewRateLimiter(Accelmps);*/
   
           // Applies deadbands and inverts controls because joysticks
           // are back-right positive while robot
@@ -112,10 +113,10 @@ public class RobotContainer
           // right stick controls the desired angle NOT angular rotation
         
     Command driveFieldOrientedDirectAngle = drivebase.driveCommand(
-              () -> MathUtil.applyDeadband(-1 * LYfilter.calculate(driverXbox.getLeftY()), OperatorConstants.LEFT_Y_DEADBAND),
-              () -> MathUtil.applyDeadband(-1 * LXfilter.calculate(driverXbox.getLeftX()), OperatorConstants.LEFT_X_DEADBAND),
-              () -> driverXbox.getRightX() * -1,
-              () -> driverXbox.getRightY());
+              () -> MathUtil.applyDeadband(Controls.Direction * -1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+              () -> MathUtil.applyDeadband(Controls.Direction * -1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
+              () -> driverXbox.getRightX() * -1 * Controls.Direction,
+              () -> driverXbox.getRightY() * Controls.Direction);
   
           // Applies deadbands and inverts controls because joysticks
           // are back-right positive while robot
@@ -129,11 +130,11 @@ public class RobotContainer
               () -> driverXbox.getRightX() * 0.5);
   
     Command driveFieldOrientedDirectAngleSim = drivebase.simDriveCommand(
-      () -> MathUtil.applyDeadband(-1 * LYfilter.calculate(driverXbox.getLeftY()), OperatorConstants.LEFT_Y_DEADBAND),
-      () -> MathUtil.applyDeadband(-1 * LXfilter.calculate(driverXbox.getLeftX()), OperatorConstants.LEFT_X_DEADBAND),
+      () -> MathUtil.applyDeadband(Controls.Direction * -1 * driverXbox.getLeftY(), OperatorConstants.LEFT_Y_DEADBAND),
+      () -> MathUtil.applyDeadband(Controls.Direction * -1 * driverXbox.getLeftX(), OperatorConstants.LEFT_X_DEADBAND),
       //() -> driverXbox.getRawAxis(4) * 0.5);
-      () -> driverXbox.getRightX() * -1,
-      () -> driverXbox.getRightY());
+      () -> driverXbox.getRightX() * -1 * Controls.Direction,
+      () -> driverXbox.getRightY() * Controls.Direction);
   
   
   
@@ -152,7 +153,7 @@ public class RobotContainer
                               ));
     driverXbox.b().whileTrue(
         Commands.deferredProxy(() -> drivebase.driveToPose(
-                                   new Pose2d(new Translation2d(0, 0), Rotation2d.fromDegrees(0)))
+                                   new Pose2d(new Translation2d(1.40, 5.55), Rotation2d.fromDegrees(0)))
                               ));
     driverXbox.y().whileTrue(drivebase.aimAtSpeaker(0.25));
     //driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
